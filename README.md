@@ -130,16 +130,39 @@ npm run dev
 - Display: [http://localhost:3000/display/LED-001](http://localhost:3000/display/LED-001)
 - Debug overlay: `/display/LED-001?debug=1`
 
-## 11. Production
+## 11. Production — Render
+
+Repo: [github.com/mekanizma/ledscreem](https://github.com/mekanizma/ledscreem)  
+Blueprint: kökteki `render.yaml` (Frankfurt, Node 20, `master`, auto-deploy).
+
+### Deploy adımları
+
+1. [render.com](https://render.com) → **New → Blueprint** → `mekanizma/ledscreem` repo’sunu bağla.
+2. Environment değerlerini doldur (build öncesi zorunlu):
+
+| Key | Örnek |
+|-----|--------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://xxxx.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJ...` |
+| `NEXT_PUBLIC_APP_URL` | `https://ledscreem.onrender.com` |
+
+3. Deploy bitince Supabase → **Authentication → URL Configuration**:
+   - **Site URL:** `https://ledscreem.onrender.com`
+   - **Redirect URLs:** `https://ledscreem.onrender.com/**`
+4. LED kiosk URL: `https://ledscreem.onrender.com/display/LED-001`
+
+### Plan notu
+
+`render.yaml` **Starter** plan kullanır (sürekli açık). Free plan uyur; 7/24 LED için uygun değildir.
+
+### Yerel production denemesi
 
 ```bash
 npm run build
 npm start
 ```
 
-Vercel / benzeri host’a deploy edin. Environment variables’ı production’a ekleyin.
-
-HTTPS zorunludur (PWA + Secure cookie).
+HTTPS zorunludur (PWA + Secure cookie) — Render bunu sağlar.
 
 ## 12. LED display kurulumu
 

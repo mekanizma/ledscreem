@@ -2,10 +2,13 @@
   "name": "led-signage",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --hostname 0.0.0.0",
     "lint": "eslint",
     "icons": "node scripts/generate-icons.js",
     "db:setup": "node scripts/setup-supabase.js",

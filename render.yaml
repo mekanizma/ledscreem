@@ -1,0 +1,29 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Dashboard: New → Blueprint → bu repo'yu seç
+services:
+  - type: web
+    name: ledscreem
+    runtime: node
+    plan: starter
+    region: frankfurt
+    branch: master
+    autoDeploy: true
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /admin/login
+    envVars:
+      - key: NODE_VERSION
+        value: "20.18.0"
+      - key: NODE_ENV
+        value: production
+      # Build + runtime (NEXT_PUBLIC_* build anında gömülür — Dashboard'da mutlaka doldur)
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      # Deploy sonrası: https://ledscreem.onrender.com (veya custom domain)
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      # Opsiyonel — yalnızca sunucu scriptleri için
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
