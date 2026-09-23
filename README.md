@@ -1,36 +1,225 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LED Signage — Digital Signage Yönetim Sistemi
 
-## Getting Started
+Uzaktan yönetilebilir, 7/24 çalışan profesyonel LED duyuru / digital signage platformu.
 
-First, run the development server:
+**Varsayılan LED çözünürlük:** `256 × 640` (portrait)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```text
+ADMIN PANEL  →  SUPABASE (Auth / DB / Storage / Realtime)  →  LED DISPLAY
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 1. Proje amacı
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Kurum / üniversite dikey LED ekranlarında görsel, video ve yazılı duyuru yayınlamak. Yönetici web panelinden içerik ekler; internete bağlı display cihazı (Mini PC, Raspberry Pi, Android Box, Windows) otomatik güncellenir.
 
-## Learn More
+## 2. Sistem mimarisi
 
-To learn more about Next.js, take a look at the following resources:
+| Katman | Teknoloji |
+|--------|-----------|
+| Frontend | Next.js (App Router) + TypeScript + Tailwind CSS |
+| Auth | Supabase Authentication |
+| Veri | Supabase PostgreSQL |
+| Medya | Supabase Storage (`content-media`) |
+| Canlı güncelleme | Supabase Realtime |
+| Offline | localStorage playlist cache + PWA / Workbox |
+| İkonlar | Lucide React |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Merkezi display config: `src/lib/config/display.ts`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```ts
+const DISPLAY_CONFIG = {
+  width: 256,
+  height: 640,
+  orientation: "portrait",
+  aspectRatio: 256 / 640,
+};
+```
 
-## Deploy on Vercel
+Her ekranın kendi `width` / `height` alanı vardır; ileride farklı çözünürlükler desteklenir.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 3. Kullanılan teknolojiler
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js + React 19
+- TypeScript (strict)
+- Tailwind CSS 4
+- `@supabase/ssr` + `@supabase/supabase-js`
+- `@dnd-kit` (playlist drag & drop)
+- `qrcode.react`
+- `date-fns` / `date-fns-tz` (`Europe/Nicosia`)
+- Custom service worker (`public/sw.js`) — PWA cache
+
+## 4. Supabase kurulumu
+
+1. [supabase.com](https://supabase.com) üzerinde yeni proje oluşturun.
+2. **Project Settings → API** içinden URL ve `anon` key alın.
+3. `.env.local` dosyasını `.env.example` örneğine göre doldurun.
+4. SQL Editor’de migration dosyalarını sırayla çalıştırın.
+
+## 5. Database migration
+
+Klasör: `supabase/migrations/`
+
+| Dosya | İçerik |
+|-------|--------|
+| `001_initial_schema.sql` | Tablolar, trigger’lar, heartbeat RPC, realtime |
+| `002_rls.sql` | Row Level Security |
+| `003_storage.sql` | `content-media` bucket + politikalar |
+| `004_seed.sql` | LED-001 + örnek duyurular |
+
+Supabase SQL Editor’de **001 → 004** sırasıyla çalıştırın.
+
+Realtime: migration `contents`, `display_contents`, `displays` tablolarını publication’a ekler. Dashboard → Database → Replication’dan doğrulayın.
+
+## 6. Storage kurulumu
+
+Bucket adı: **`content-media`** (public read)
+
+İzin verilen MIME:
+
+- `image/jpeg`, `image/png`, `image/webp`
+- `video/mp4`, `video/webm`
+
+Limitler uygulama tarafında da kontrol edilir (`MEDIA_LIMITS`).
+
+## 7. RLS
+
+- **Admin** (`profiles.role = 'admin'`): içerik / playlist / display CRUD
+- **Anon (LED cihazı)**: okuma + `touch_display_heartbeat` RPC
+- Service role key **frontend’de yoktur**
+
+## 8. Environment variables
+
+`.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+```
+
+İsteğe bağlı (yalnızca sunucu / script):
+
+```env
+SUPABASE_SERVICE_ROLE_KEY=...
+```
+
+## 9. Admin kullanıcı oluşturma
+
+1. Supabase → **Authentication → Users → Add user**
+2. E-posta + şifre ile kullanıcı oluşturun
+3. SQL:
+
+```sql
+update public.profiles
+set role = 'admin', full_name = 'Sistem Yöneticisi'
+where email = 'admin@ornek.edu';
+```
+
+4. `/admin/login` ile giriş yapın
+
+## 10. Development
+
+```bash
+npm install
+cp .env.example .env.local   # değerleri doldurun
+npm run dev
+```
+
+- Admin: [http://localhost:3000/admin](http://localhost:3000/admin)
+- Display: [http://localhost:3000/display/LED-001](http://localhost:3000/display/LED-001)
+- Debug overlay: `/display/LED-001?debug=1`
+
+## 11. Production
+
+```bash
+npm run build
+npm start
+```
+
+Vercel / benzeri host’a deploy edin. Environment variables’ı production’a ekleyin.
+
+HTTPS zorunludur (PWA + Secure cookie).
+
+## 12. LED display kurulumu
+
+1. Display cihazında Chrome / Chromium / Edge açın
+2. URL: `https://YOUR_DOMAIN/display/LED-001`
+3. Tam ekran (F11) veya kiosk modu
+4. Otomatik açılışta bu URL’yi başlatın
+5. Ekran uykuya / ekran koruyucuya girmesin
+
+## 13. Browser kiosk kurulumu
+
+**Windows (Chrome):**
+
+```bat
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --app=https://YOUR_DOMAIN/display/LED-001 --check-for-update-interval=604800
+```
+
+**Raspberry Pi / Linux:**
+
+```bash
+chromium-browser --kiosk --noerrdialogs --disable-infobars https://YOUR_DOMAIN/display/LED-001
+```
+
+**Android Box:** Fully Kiosk Browser veya Chrome kiosk shortcut.
+
+## 14. Offline çalışma
+
+- Son başarılı playlist `localStorage`’a yazılır
+- Medya URL’leri Workbox `CacheFirst` ile cache’lenir
+- İnternet kesilince son playlist sessizce devam eder (ziyaretçiye hata mesajı yok)
+- Bağlantı gelince Realtime + `online` event ile senkronize olur
+
+## 15. Birden fazla ekran ekleme
+
+```sql
+insert into public.displays (name, location, display_code, width, height, orientation)
+values ('Kütüphane', 'Kütüphane Hol', 'LED-002', 256, 640, 'portrait');
+```
+
+Sonra `display_contents` ile o ekrana özel playlist bağlayın.
+
+URL: `/display/LED-002`
+
+---
+
+## Admin menü
+
+- Dashboard
+- İçerikler
+- Yayın Sırası (drag & drop)
+- Ekranlar (online / offline heartbeat)
+- Zamanlama (`Europe/Nicosia`)
+- Ayarlar
+
+## Display davranışı
+
+- Mantıksal viewport: ekranın `width × height` (varsayılan 256×640)
+- Browser çözünürlüğüne orantılı scale (`object-fit: cover | contain`)
+- Aspect ratio asla bozulmaz
+- Video: `autoplay` + `muted` + `playsInline`, varsayılan `next-on-end`
+- Realtime playlist değişince mevcut içerik biter, sonra yeni listeye geçilir
+- Heartbeat: 30 sn · Offline eşiği: 90 sn
+
+## Proje yapısı (özet)
+
+```text
+src/
+  app/admin/(panel)/     Admin sayfaları
+  app/admin/login/       Giriş
+  app/display/[code]/   LED player
+  components/admin/      Panel UI
+  components/display/    Player + preview
+  lib/config/display.ts  Merkezi config
+  lib/supabase/          Client / server / middleware
+  lib/cache/offline.ts   Offline cache
+supabase/migrations/     SQL
+```
+
+## Güvenlik notları
+
+- `SUPABASE_SERVICE_ROLE_KEY` asla `NEXT_PUBLIC_*` yapmayın
+- Admin route’ları middleware + `profiles.role` ile korunur
+- Display yalnızca okuma + heartbeat yetkisine sahiptir
