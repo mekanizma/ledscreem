@@ -27,7 +27,7 @@ export const TIMEZONE = "Europe/Nicosia";
 
 export const MEDIA_LIMITS = {
   imageMaxBytes: 20 * 1024 * 1024,
-  videoMaxBytes: 200 * 1024 * 1024,
+  videoMaxBytes: 1024 * 1024 * 1024, // 1 GB
   imageMimeTypes: ["image/jpeg", "image/jpg", "image/png", "image/webp"] as const,
   videoMimeTypes: ["video/mp4", "video/webm"] as const,
   imageExtensions: [".jpg", ".jpeg", ".png", ".webp"] as const,

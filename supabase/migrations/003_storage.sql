@@ -5,7 +5,7 @@ values (
   'content-media',
   'content-media',
   true,
-  209715200, -- 200 MB
+  1073741824, -- 1 GB
   array[
     'image/jpeg',
     'image/jpg',
