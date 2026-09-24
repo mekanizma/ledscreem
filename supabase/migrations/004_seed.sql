@@ -7,9 +7,9 @@ insert into public.displays (
   'Ana Bina Duyuru Ekranı',
   'Ana Bina Giriş',
   'LED-001',
-  256,
-  640,
-  'portrait',
+  1920,
+  1080,
+  'landscape',
   'unknown'
 )
 on conflict (display_code) do nothing;

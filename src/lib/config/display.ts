@@ -1,8 +1,9 @@
+/** Default canvas for 65" TV (Full HD 16:9 landscape). */
 export const DISPLAY_CONFIG = {
-  width: 256,
-  height: 640,
-  orientation: "portrait" as const,
-  aspectRatio: 256 / 640,
+  width: 1920,
+  height: 1080,
+  orientation: "landscape" as const,
+  aspectRatio: 1920 / 1080,
 };
 
 export type DisplayOrientation = "portrait" | "landscape";

@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "LED Signage",
-    short_name: "LED Signage",
-    description: "LED duyuru ve digital signage yönetim sistemi",
+    name: "Ekran Yönlendirme",
+    short_name: "Ekran Yönlendirme",
+    description: "Ekran yönlendirme ve duyuru yayın yönetim sistemi",
     start_url: "/admin",
     display: "standalone",
     background_color: "#0f172a",

@@ -15,16 +15,16 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "LED Signage",
-    template: "%s · LED Signage",
+    default: "Ekran Yönlendirme",
+    template: "%s · Ekran Yönlendirme",
   },
   description:
-    "Uzaktan yönetilebilir LED duyuru ve digital signage yönetim sistemi",
-  applicationName: "LED Signage",
+    "Uzaktan yönetilebilir ekran yönlendirme ve duyuru yayın sistemi",
+  applicationName: "Ekran Yönlendirme",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "LED Signage",
+    title: "Ekran Yönlendirme",
   },
   manifest: "/manifest.webmanifest",
 };

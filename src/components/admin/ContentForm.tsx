@@ -446,7 +446,7 @@ export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProp
             options={[
               {
                 value: "stretch",
-                label: "Doldur (kesmeden — 256×640'a yay)",
+                label: `Doldur (kesmeden — ${DISPLAY_CONFIG.width}×${DISPLAY_CONFIG.height}'a yay)`,
               },
               {
                 value: "contain",

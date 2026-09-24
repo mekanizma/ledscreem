@@ -86,7 +86,7 @@ export function AdminShell({
             <Radio className="h-4 w-4" aria-hidden />
           </div>
           <div>
-            <p className="text-sm font-semibold tracking-tight">LED Signage</p>
+            <p className="text-sm font-semibold tracking-tight">Ekran Yönlendirme</p>
             <p className="text-[11px] text-slate-500">Yönetim Paneli</p>
           </div>
         </div>
@@ -115,7 +115,7 @@ export function AdminShell({
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white">
             <Radio className="h-3.5 w-3.5" aria-hidden />
           </div>
-          <span className="text-sm font-semibold">LED Signage</span>
+          <span className="text-sm font-semibold">Ekran Yönlendirme</span>
         </div>
         <button
           type="button"

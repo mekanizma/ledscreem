@@ -1,18 +1,18 @@
-# LED Signage — Digital Signage Yönetim Sistemi
+# Ekran Yönlendirme — Duyuru Yayın Yönetim Sistemi
 
-Uzaktan yönetilebilir, 7/24 çalışan profesyonel LED duyuru / digital signage platformu.
+Uzaktan yönetilebilir, 7/24 çalışan profesyonel ekran yönlendirme / duyuru yayın platformu.
 
-**Varsayılan LED çözünürlük:** `256 × 640` (portrait)
+**Varsayılan çözünürlük:** `1920 × 1080` (65" TV, landscape)
 
 ```text
-ADMIN PANEL  →  SUPABASE (Auth / DB / Storage / Realtime)  →  LED DISPLAY
+ADMIN PANEL  →  SUPABASE (Auth / DB / Storage / Realtime)  →  EKRAN PLAYER
 ```
 
 ---
 
 ## 1. Proje amacı
 
-Kurum / üniversite dikey LED ekranlarında görsel, video ve yazılı duyuru yayınlamak. Yönetici web panelinden içerik ekler; internete bağlı display cihazı (Mini PC, Raspberry Pi, Android Box, Windows) otomatik güncellenir.
+Kurum / üniversite ekranlarında görsel, video ve yazılı duyuru / yönlendirme yayınlamak. Yönetici web panelinden içerik ekler; internete bağlı display cihazı (Mini PC, Raspberry Pi, Android Box, Windows) otomatik güncellenir.
 
 ## 2. Sistem mimarisi
 
@@ -30,10 +30,10 @@ Merkezi display config: `src/lib/config/display.ts`
 
 ```ts
 const DISPLAY_CONFIG = {
-  width: 256,
-  height: 640,
-  orientation: "portrait",
-  aspectRatio: 256 / 640,
+  width: 1920,
+  height: 1080,
+  orientation: "landscape",
+  aspectRatio: 1920 / 1080,
 };
 ```
 
@@ -86,7 +86,7 @@ Limitler uygulama tarafında da kontrol edilir (`MEDIA_LIMITS`).
 ## 7. RLS
 
 - **Admin** (`profiles.role = 'admin'`): içerik / playlist / display CRUD
-- **Anon (LED cihazı)**: okuma + `touch_display_heartbeat` RPC
+- **Anon (ekran cihazı)**: okuma + `touch_display_heartbeat` RPC
 - Service role key **frontend’de yoktur**
 
 ## 8. Environment variables
@@ -199,7 +199,7 @@ chromium-browser --kiosk --noerrdialogs --disable-infobars https://YOUR_DOMAIN/d
 
 ```sql
 insert into public.displays (name, location, display_code, width, height, orientation)
-values ('Kütüphane', 'Kütüphane Hol', 'LED-002', 256, 640, 'portrait');
+values ('Kütüphane', 'Kütüphane Hol', 'LED-002', 1920, 1080, 'landscape');
 ```
 
 Sonra `display_contents` ile o ekrana özel playlist bağlayın.
@@ -219,7 +219,7 @@ URL: `/display/LED-002`
 
 ## Display davranışı
 
-- Mantıksal viewport: ekranın `width × height` (varsayılan 256×640)
+- Mantıksal viewport: ekranın `width × height` (varsayılan 1920×1080)
 - Browser çözünürlüğüne orantılı scale (`object-fit: cover | contain`)
 - Aspect ratio asla bozulmaz
 - Video: `autoplay` + `muted` + `playsInline`, varsayılan `next-on-end`

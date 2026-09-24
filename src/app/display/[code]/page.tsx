@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LedDisplayApp } from "@/components/display/LedDisplayApp";
 
 export const metadata: Metadata = {
-  title: "LED Display",
+  title: "Ekran Yönlendirme",
   robots: { index: false, follow: false },
 };
 

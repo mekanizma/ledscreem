@@ -106,7 +106,7 @@ export default function AdminLoginPage() {
             <Radio className="h-5 w-5" aria-hidden />
           </div>
           <h1 className="text-xl font-semibold tracking-tight text-slate-900">
-            LED Signage
+            Ekran Yönlendirme
           </h1>
           <p className="mt-1 text-sm text-slate-500">Yönetici girişi</p>
         </div>

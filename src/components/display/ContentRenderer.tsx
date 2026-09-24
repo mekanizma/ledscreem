@@ -30,7 +30,7 @@ interface ScaledViewportProps {
 }
 
 /**
- * Maps a logical LED canvas (e.g. 256×640) into the parent element.
+ * Maps a logical display canvas (e.g. 1920×1080) into the parent element.
  * LED kiosk should use mode="stretch" so every physical pixel is used.
  */
 export function ScaledViewport({

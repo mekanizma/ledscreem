@@ -1,7 +1,7 @@
 import type { PlaylistItem } from "@/lib/supabase/types";
 
-const PLAYLIST_KEY = "led-signage:playlist";
-const META_KEY = "led-signage:meta";
+const PLAYLIST_KEY = "ekran-yonlendirme:playlist";
+const META_KEY = "ekran-yonlendirme:meta";
 
 export interface CachedPlaylist {
   displayCode: string;

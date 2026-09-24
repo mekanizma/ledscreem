@@ -16,28 +16,28 @@ interface PreviewFrameProps {
 }
 
 /**
- * Admin live preview at logical LED resolution, scaled to fit container.
+ * Admin live preview at logical display resolution, scaled to fit container.
+ * Landscape (e.g. 65" TV 1920×1080) stays within viewport on mobile.
  */
 export function PreviewFrame({
   item,
   className = "",
   maxHeight = 480,
-  label = "LED Önizleme",
+  label = "TV Önizleme",
 }: PreviewFrameProps) {
   const { width, height, aspectRatio } = DISPLAY_CONFIG;
   const previewHeight = Math.min(maxHeight, 520);
-  const previewWidth = previewHeight * aspectRatio;
 
   return (
-    <div className={`flex flex-col items-center gap-2 ${className}`}>
+    <div className={`flex w-full flex-col items-center gap-2 ${className}`}>
       <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">
         {label} · {width}×{height}
       </p>
       <div
-        className="overflow-hidden rounded-lg border border-slate-800 bg-black shadow-lg ring-1 ring-slate-900/10"
+        className="w-full max-w-full overflow-hidden rounded-lg border border-slate-800 bg-black shadow-lg ring-1 ring-slate-900/10"
         style={{
-          width: previewWidth,
-          height: previewHeight,
+          maxWidth: Math.min(previewHeight * aspectRatio, 960),
+          aspectRatio: `${width} / ${height}`,
         }}
       >
         <ScaledViewport width={width} height={height} className="h-full w-full" mode="fit">
@@ -58,12 +58,12 @@ export function PreviewFrame({
         </ScaledViewport>
       </div>
       {item?.type === "image" || item?.type === "video" ? (
-        <p className="max-w-[220px] text-center text-[11px] leading-snug text-slate-500">
+        <p className="max-w-sm px-2 text-center text-[11px] leading-snug text-slate-500">
           {item.fit_mode === "contain"
             ? "Sığdır: görselin tamamı görünür, gerekirse boşluk kalır."
             : item.fit_mode === "cover"
               ? "Kırp: ekran dolar, kenarlar kesilebilir."
-              : "Doldur: görsel kesilmeden 256×640 alana yayılır."}
+              : `Doldur: görsel kesilmeden ${width}×${height} alana yayılır.`}
         </p>
       ) : null}
     </div>

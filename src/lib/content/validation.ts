@@ -98,6 +98,6 @@ export function adaptationHint(
   displayWidth: number,
   displayHeight: number,
 ): string {
-  return `Bu medya ${width}×${height}. LED ${displayWidth}×${displayHeight}. Varsayılan "Doldur" kesmeden tüm görseli LED ölçüsüne yayar. "Sığdır" boşluk bırakır. "Kırparak doldur" kenarları kesebilir.`;
+  return `Bu medya ${width}×${height}. Ekran ${displayWidth}×${displayHeight}. Varsayılan "Doldur" kesmeden tüm görseli ekran ölçüsüne yayar. "Sığdır" boşluk bırakır. "Kırparak doldur" kenarları kesebilir.`;
 }
 

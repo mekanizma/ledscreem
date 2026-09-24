@@ -60,7 +60,7 @@ export default async function DashboardPage() {
           Dashboard
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          LED yayın sistemi genel durumu
+          Ekran yönlendirme sistemi genel durumu
         </p>
       </div>
 

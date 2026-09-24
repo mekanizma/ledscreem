@@ -1,5 +1,5 @@
-/* LED Signage service worker — cache app shell + media */
-const CACHE = "led-signage-v1";
+/* Ekran Yönlendirme service worker — cache app shell + media */
+const CACHE = "ekran-yonlendirme-v1";
 const PRECACHE = ["/", "/admin", "/offline", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {

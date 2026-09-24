@@ -148,7 +148,7 @@ export function PlaylistBoard({
     <div>
       <div className="mb-3 flex items-center justify-between gap-2">
         <p className="text-sm text-slate-500">
-          Sürükleyerek sırayı değiştirin. Değişiklik anında LED ekrana yansır.
+          Sürükleyerek sırayı değiştirin. Değişiklik anında ekrana yansır.
         </p>
         {saving ? (
           <span className="text-xs font-medium text-slate-500">Kaydediliyor…</span>

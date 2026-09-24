@@ -19,7 +19,7 @@ export default async function DisplaysPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Ekranlar</h1>
         <p className="mt-1 text-sm text-slate-500">
-          LED cihazları ve online/offline durumu
+          Ekran cihazları ve online/offline durumu
         </p>
       </div>
 
