@@ -24,6 +24,9 @@ services:
       # Deploy sonrası: https://ledscreem.onrender.com (veya custom domain)
       - key: NEXT_PUBLIC_APP_URL
         sync: false
-      # Opsiyonel — yalnızca sunucu scriptleri için
+      # Admin hesap oluşturma (Supabase → Settings → API → service_role)
       - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # Alternatif (service role yoksa): doğrudan Postgres
+      - key: DATABASE_URL
         sync: false

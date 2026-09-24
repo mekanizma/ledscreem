@@ -321,3 +321,10 @@ export function asDisplay(row: Database["public"]["Tables"]["displays"]["Row"]):
     status: row.status as Display["status"],
   };
 }
+
+export function asProfile(row: Database["public"]["Tables"]["profiles"]["Row"]): Profile {
+  return {
+    ...row,
+    role: row.role as UserRole,
+  };
+}
