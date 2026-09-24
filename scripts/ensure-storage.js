@@ -35,7 +35,7 @@ async function main() {
       'content-media',
       'content-media',
       true,
-      1073741824,
+      4294967296,
       array[
         'image/jpeg','image/jpg','image/png','image/webp',
         'video/mp4','video/webm'

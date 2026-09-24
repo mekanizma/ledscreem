@@ -48,14 +48,22 @@ export function DisplayStatusCard({ display }: { display: Display }) {
         </div>
       </dl>
 
-      <Link
-        href={`/display/${display.display_code}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-4 inline-flex text-xs font-medium text-slate-600 underline-offset-2 hover:text-slate-900 hover:underline"
-      >
-        Display URL aç
-      </Link>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Link
+          href={`/display/${display.display_code}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex text-xs font-medium text-slate-600 underline-offset-2 hover:text-slate-900 hover:underline"
+        >
+          Display URL aç
+        </Link>
+        <Link
+          href={`/admin/playlist?code=${encodeURIComponent(display.display_code)}`}
+          className="inline-flex text-xs font-medium text-slate-600 underline-offset-2 hover:text-slate-900 hover:underline"
+        >
+          Yayın sırası
+        </Link>
+      </div>
     </div>
   );
 }

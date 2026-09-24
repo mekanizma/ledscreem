@@ -13,7 +13,7 @@ import {
   type FitMode,
   type VideoEndBehavior,
 } from "@/lib/config/display";
-import type { AnnouncementData, Content } from "@/lib/supabase/types";
+import type { AnnouncementData, Content, Display } from "@/lib/supabase/types";
 import {
   adaptationHint,
   readImageDimensions,
@@ -43,10 +43,17 @@ const emptyAnnouncement = (): AnnouncementData => ({
 interface ContentFormProps {
   mode: "create" | "edit";
   initial?: Content;
-  defaultDisplayId?: string | null;
+  displays?: Pick<Display, "id" | "display_code" | "name">[];
+  /** Pre-selected display ids (create: default TVs; edit: current assignments) */
+  initialDisplayIds?: string[];
 }
 
-export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProps) {
+export function ContentForm({
+  mode,
+  initial,
+  displays = [],
+  initialDisplayIds,
+}: ContentFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -70,7 +77,81 @@ export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProp
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [assignToDisplay, setAssignToDisplay] = useState(true);
+  const [selectedDisplayIds, setSelectedDisplayIds] = useState<string[]>(() => {
+    if (initialDisplayIds && initialDisplayIds.length > 0) return [...initialDisplayIds];
+    return [];
+  });
+
+  const toggleDisplay = (id: string) => {
+    setSelectedDisplayIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  const tvPicker = (
+    <fieldset className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+      <legend className="px-1 text-sm font-semibold text-slate-900">
+        Hangi TV&apos;de yayınlansın?
+      </legend>
+      <p className="text-xs text-slate-500">
+        Bir veya birden fazla ekran seçin (TV1, TV2…).
+      </p>
+      {displays.length === 0 ? (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Henüz ekran yok. Önce Ekranlar sayfasından TV1 / TV2 ekleyin.
+        </p>
+      ) : (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {displays.map((d) => {
+            const checked = selectedDisplayIds.includes(d.id);
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => toggleDisplay(d.id)}
+                aria-pressed={checked}
+                className={`flex min-h-14 flex-col items-start justify-center rounded-xl border px-3 py-2.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${
+                  checked
+                    ? "border-slate-900 bg-slate-900 text-white shadow-sm"
+                    : "border-slate-200 bg-white text-slate-800 hover:border-slate-400"
+                }`}
+              >
+                <span className="font-mono text-sm font-semibold">{d.display_code}</span>
+                <span
+                  className={`truncate text-xs ${checked ? "text-slate-300" : "text-slate-500"}`}
+                >
+                  {d.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {displays.length > 0 ? (
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            className="text-xs font-medium text-slate-600 underline-offset-2 hover:underline"
+            onClick={() => setSelectedDisplayIds(displays.map((d) => d.id))}
+          >
+            Tümünü seç
+          </button>
+          <button
+            type="button"
+            className="text-xs font-medium text-slate-600 underline-offset-2 hover:underline"
+            onClick={() => setSelectedDisplayIds([])}
+          >
+            Temizle
+          </button>
+          {selectedDisplayIds.length > 0 ? (
+            <span className="text-xs text-slate-500">
+              {selectedDisplayIds.length} ekran seçili
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+    </fieldset>
+  );
 
   useEffect(() => {
     return () => {
@@ -128,10 +209,12 @@ export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProp
       return;
     }
 
-    setType(check.kind);
+    const kind = check.kind;
+    setType(kind);
 
     try {
-      if (check.kind === "image") {
+      // Local preview + metadata (non-blocking defaults if metadata stalls)
+      if (kind === "image") {
         const meta = await readImageDimensions(file);
         setLocalPreview((prev) => {
           if (prev) URL.revokeObjectURL(prev);
@@ -163,32 +246,46 @@ export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProp
         setDuration(meta.duration);
       }
 
-      // Upload immediately for reliability
       setUploadProgress(0);
       const supabase = createClient();
-      const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
-      const path = `${check.kind}/${crypto.randomUUID()}.${ext}`;
+      const ext = file.name.split(".").pop()?.toLowerCase() || (kind === "video" ? "mp4" : "jpg");
+      const path = `${kind}/${crypto.randomUUID()}.${ext}`;
 
-      // Simulate progress since supabase-js doesn't expose upload progress easily
+      const contentType =
+        file.type ||
+        (kind === "video"
+          ? ext === "webm"
+            ? "video/webm"
+            : "video/mp4"
+          : ext === "png"
+            ? "image/png"
+            : ext === "webp"
+              ? "image/webp"
+              : "image/jpeg");
+
       const progressTimer = setInterval(() => {
         setUploadProgress((p) => (p === null || p >= 90 ? p : p + 8));
       }, 200);
 
       const { error: upErr } = await supabase.storage
         .from(STORAGE_BUCKET)
-        .upload(path, file, { cacheControl: "31536000", upsert: false });
+        .upload(path, file, {
+          cacheControl: "31536000",
+          upsert: false,
+          contentType,
+        });
 
       clearInterval(progressTimer);
 
       if (upErr) {
         setUploadProgress(null);
-        setError(upErr.message);
+        setError(`Yükleme başarısız: ${upErr.message}`);
         return;
       }
 
       const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
       setMediaPath(path);
-      if (check.kind === "image") {
+      if (kind === "image") {
         setImageUrl(pub.publicUrl);
         setVideoUrl("");
       } else {
@@ -210,15 +307,21 @@ export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProp
       return;
     }
     if (type === "image" && !imageUrl) {
-      setError("Görsel yükleyin.");
+      setError("Önce bir görsel dosyası seçin; yükleme bitmeden kaydedilemez.");
       return;
     }
     if (type === "video" && !videoUrl) {
-      setError("Video yükleyin.");
+      setError(
+        "Önce bir video dosyası seçin ve yüklemenin bitmesini bekleyin (ilerleme çubuğu %100 olmalı).",
+      );
       return;
     }
     if (type === "announcement" && !announcement.description.trim()) {
       setError("Duyuru metni zorunludur.");
+      return;
+    }
+    if (selectedDisplayIds.length === 0) {
+      setError("En az bir TV seçin (TV1, TV2…).");
       return;
     }
 
@@ -257,17 +360,8 @@ export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProp
           .single();
         if (insErr) throw insErr;
 
-        if (assignToDisplay) {
-          let displayId = defaultDisplayId;
-          if (!displayId) {
-            const { data: d } = await supabase
-              .from("displays")
-              .select("id")
-              .eq("display_code", "LED-001")
-              .maybeSingle();
-            displayId = d?.id ?? null;
-          }
-          if (displayId && data) {
+        if (data && selectedDisplayIds.length > 0) {
+          for (const displayId of selectedDisplayIds) {
             const { data: maxRow } = await supabase
               .from("display_contents")
               .select("sort_order")
@@ -276,12 +370,13 @@ export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProp
               .limit(1)
               .maybeSingle();
             const nextOrder = (maxRow?.sort_order ?? -1) + 1;
-            await supabase.from("display_contents").insert({
+            const { error: linkErr } = await supabase.from("display_contents").insert({
               display_id: displayId,
               content_id: data.id,
               sort_order: nextOrder,
               active: true,
             });
+            if (linkErr) throw linkErr;
           }
         }
 
@@ -293,6 +388,46 @@ export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProp
           .update(payload)
           .eq("id", initial.id);
         if (updErr) throw updErr;
+
+        // Sync TV assignments
+        const { data: existingLinks } = await supabase
+          .from("display_contents")
+          .select("id, display_id")
+          .eq("content_id", initial.id);
+
+        const existingIds = new Set((existingLinks ?? []).map((r) => r.display_id));
+        const wanted = new Set(selectedDisplayIds);
+
+        const toRemove = (existingLinks ?? []).filter((r) => !wanted.has(r.display_id));
+        if (toRemove.length > 0) {
+          await supabase
+            .from("display_contents")
+            .delete()
+            .in(
+              "id",
+              toRemove.map((r) => r.id),
+            );
+        }
+
+        for (const displayId of selectedDisplayIds) {
+          if (existingIds.has(displayId)) continue;
+          const { data: maxRow } = await supabase
+            .from("display_contents")
+            .select("sort_order")
+            .eq("display_id", displayId)
+            .order("sort_order", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          const nextOrder = (maxRow?.sort_order ?? -1) + 1;
+          const { error: linkErr } = await supabase.from("display_contents").insert({
+            display_id: displayId,
+            content_id: initial.id,
+            sort_order: nextOrder,
+            active: true,
+          });
+          if (linkErr) throw linkErr;
+        }
+
         router.push("/admin/contents");
         router.refresh();
       }
@@ -314,6 +449,8 @@ export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProp
           placeholder="Örn. Üniversite Kayıtları"
           required
         />
+
+        {tvPicker}
 
         <Textarea
           label="Açıklama"
@@ -345,12 +482,15 @@ export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProp
               type="file"
               accept={
                 type === "video"
-                  ? "video/mp4,video/webm"
-                  : "image/jpeg,image/png,image/webp"
+                  ? "video/mp4,video/webm,.mp4,.webm"
+                  : "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
               }
               onChange={(e) => void onFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-slate-800"
+              className="block w-full max-w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-slate-800"
             />
+            {videoUrl || imageUrl ? (
+              <p className="text-xs text-emerald-700">Dosya yüklendi, kaydedebilirsiniz.</p>
+            ) : null}
             {uploadProgress !== null ? (
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
                 <div
@@ -511,18 +651,6 @@ export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProp
           Aktif
         </label>
 
-        {mode === "create" ? (
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={assignToDisplay}
-              onChange={(e) => setAssignToDisplay(e.target.checked)}
-              className="rounded border-slate-300"
-            />
-            LED-001 yayın sırasına ekle
-          </label>
-        ) : null}
-
         {error ? (
           <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
             {error}
@@ -533,8 +661,17 @@ export function ContentForm({ mode, initial, defaultDisplayId }: ContentFormProp
           <Button type="button" variant="secondary" onClick={() => router.back()}>
             İptal
           </Button>
-          <Button type="button" loading={saving} onClick={() => void save()}>
-            {mode === "create" ? "Yayınla" : "Kaydet"}
+          <Button
+            type="button"
+            loading={saving || uploadProgress !== null}
+            disabled={uploadProgress !== null}
+            onClick={() => void save()}
+          >
+            {uploadProgress !== null
+              ? "Yükleniyor…"
+              : mode === "create"
+                ? "Yayınla"
+                : "Kaydet"}
           </Button>
         </div>
       </div>

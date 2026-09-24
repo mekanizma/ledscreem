@@ -3,15 +3,9 @@
 
 insert into public.displays (
   name, location, display_code, width, height, orientation, status
-) values (
-  'Ana Bina Duyuru Ekranı',
-  'Ana Bina Giriş',
-  'LED-001',
-  1920,
-  1080,
-  'landscape',
-  'unknown'
-)
+) values
+  ('TV 1', 'Salon / TV 1', 'TV1', 1920, 1080, 'landscape', 'unknown'),
+  ('TV 2', 'Salon / TV 2', 'TV2', 1920, 1080, 'landscape', 'unknown')
 on conflict (display_code) do nothing;
 
 -- Sample announcement contents
@@ -100,12 +94,12 @@ where not exists (
   select 1 from public.contents c where c.title = v.title
 );
 
--- Attach all seed contents to LED-001
+-- Attach all seed contents to TV1 and TV2
 insert into public.display_contents (display_id, content_id, sort_order, active)
-select d.id, c.id, row_number() over (order by c.created_at) - 1, true
+select d.id, c.id, row_number() over (partition by d.id order by c.created_at) - 1, true
 from public.displays d
 cross join public.contents c
-where d.display_code = 'LED-001'
+where d.display_code in ('TV1', 'TV2', 'LED-001')
   and c.title in (
     'Üniversite Kayıtları',
     'Burs Başvuruları',
