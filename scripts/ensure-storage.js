@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { Client } = require("pg");
+const { pgSsl } = require("./pg-ssl");
 
 function loadEnvLocal() {
   const envPath = path.join(__dirname, "..", ".env.local");
@@ -20,7 +21,7 @@ loadEnvLocal();
 async function main() {
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: pgSsl(process.env.DATABASE_URL),
   });
   await client.connect();
 

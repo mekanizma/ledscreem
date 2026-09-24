@@ -1,6 +1,10 @@
 /* Ekran Yönlendirme service worker — cache app shell + media */
-const CACHE = "ekran-yonlendirme-v1";
-const PRECACHE = ["/", "/admin", "/offline", "/manifest.webmanifest"];
+const CACHE = "ekran-yonlendirme-v2";
+const PRECACHE = ["/", "/offline", "/manifest.webmanifest"];
+
+function isSensitivePath(pathname) {
+  return pathname.startsWith("/admin") || pathname.startsWith("/api");
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -23,6 +27,10 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
+
+  if (url.origin === self.location.origin && isSensitivePath(url.pathname)) {
+    return;
+  }
 
   // Cache-first for Supabase storage media
   if (url.hostname.includes("supabase.co") && url.pathname.includes("/storage/")) {
@@ -47,8 +55,11 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(req)
         .then(async (res) => {
-          const cache = await caches.open(CACHE);
-          cache.put(req, res.clone());
+          const finalUrl = new URL(res.url);
+          if (!isSensitivePath(finalUrl.pathname) && res.ok && res.type === "basic") {
+            const cache = await caches.open(CACHE);
+            cache.put(req, res.clone());
+          }
           return res;
         })
         .catch(async () => {

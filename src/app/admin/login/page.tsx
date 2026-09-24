@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Radio } from "lucide-react";
 
+function safeInternalPath(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\") || value.includes("://")) {
+    return "/admin";
+  }
+  return value;
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,8 +66,7 @@ function LoginForm() {
       return;
     }
 
-    const redirect = searchParams.get("redirect") || "/admin";
-    router.push(redirect);
+    router.push(safeInternalPath(searchParams.get("redirect")));
     router.refresh();
   };
 

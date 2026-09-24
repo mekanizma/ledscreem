@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { Client } = require("pg");
+const { pgSsl } = require("./pg-ssl");
 
 for (const line of fs
   .readFileSync(path.join(__dirname, "..", ".env.local"), "utf8")
@@ -14,7 +15,7 @@ for (const line of fs
 (async () => {
   const c = new Client({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: pgSsl(process.env.DATABASE_URL),
   });
   await c.connect();
   const sql = fs.readFileSync(

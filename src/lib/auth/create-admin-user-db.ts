@@ -1,4 +1,8 @@
+import { readFileSync } from "fs";
+import { join } from "path";
 import { Client } from "pg";
+
+const supabaseCa = readFileSync(join(process.cwd(), "scripts", "supabase-ca.crt"), "utf8");
 
 /**
  * Create an admin auth user via direct Postgres when service role key is absent.
@@ -20,7 +24,9 @@ export async function createAdminUserViaDb(input: {
 
   const c = new Client({
     connectionString: databaseUrl,
-    ssl: { rejectUnauthorized: false },
+    ssl: /localhost|127\.0\.0\.1/i.test(databaseUrl)
+      ? false
+      : { rejectUnauthorized: true, ca: supabaseCa },
   });
 
   try {

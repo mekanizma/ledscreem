@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { Client } = require("pg");
+const { pgSsl } = require("./pg-ssl");
 
 for (const line of fs.readFileSync(path.join(__dirname, "..", ".env.local"), "utf8").split(/\r?\n/)) {
   const t = line.trim();
@@ -12,7 +13,7 @@ for (const line of fs.readFileSync(path.join(__dirname, "..", ".env.local"), "ut
 (async () => {
   const c = new Client({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: pgSsl(process.env.DATABASE_URL),
   });
   await c.connect();
   await c.query(`update public.contents set fit_mode = 'stretch'`);

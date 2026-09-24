@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { Client } = require("pg");
+const { pgSsl } = require("./pg-ssl");
 
 function loadEnvLocal() {
   const envPath = path.join(__dirname, "..", ".env.local");
@@ -20,17 +21,21 @@ loadEnvLocal();
 
 const DATABASE_URL = process.env.DATABASE_URL;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@led.local";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "LedAdmin2026!";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 
 if (!DATABASE_URL) {
   console.error("DATABASE_URL missing in .env.local");
+  process.exit(1);
+}
+if (ADMIN_PASSWORD.length < 8) {
+  console.error("ADMIN_PASSWORD missing or shorter than 8 characters");
   process.exit(1);
 }
 
 async function run() {
   const client = new Client({
     connectionString: DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: pgSsl(DATABASE_URL),
   });
 
   await client.connect();
@@ -86,7 +91,6 @@ async function run() {
   await client.end();
   console.log("\nDone.");
   console.log(`Admin login: ${ADMIN_EMAIL}`);
-  console.log(`Admin password: ${ADMIN_PASSWORD}`);
 }
 
 async function runStatements(client, sql, file) {

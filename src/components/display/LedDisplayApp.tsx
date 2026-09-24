@@ -44,21 +44,24 @@ async function fetchPlaylist(
 
   if (pErr) return { display, items: [] };
 
-  const mappedRows: DisplayContentWithContent[] = (rows ?? []).map((row) => {
+  const mappedRows: DisplayContentWithContent[] = (rows ?? []).flatMap((row) => {
     const contentRaw = row.content as unknown;
     const contentRow = (
       Array.isArray(contentRaw) ? contentRaw[0] : contentRaw
-    ) as Parameters<typeof asContent>[0];
-    return {
-      id: row.id,
-      display_id: row.display_id,
-      content_id: row.content_id,
-      sort_order: row.sort_order,
-      active: row.active,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-      content: asContent(contentRow),
-    };
+    ) as Parameters<typeof asContent>[0] | null;
+    if (!contentRow) return [];
+    return [
+      {
+        id: row.id,
+        display_id: row.display_id,
+        content_id: row.content_id,
+        sort_order: row.sort_order,
+        active: row.active,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        content: asContent(contentRow),
+      },
+    ];
   });
 
   const mapped = mapToPlaylistItems(mappedRows, { onlyPlayable: true });
@@ -167,11 +170,12 @@ export function LedDisplayApp({ displayCode, debug = false }: LedDisplayAppProps
     scheduleRef.current = setInterval(() => {
       setItems((prev) => filterPlayablePlaylist(prev));
       setPendingItems((prev) => (prev ? filterPlayablePlaylist(prev) : null));
+      void load(true);
     }, 30_000);
     return () => {
       if (scheduleRef.current) clearInterval(scheduleRef.current);
     };
-  }, []);
+  }, [load]);
 
   // Realtime subscriptions
   useEffect(() => {
