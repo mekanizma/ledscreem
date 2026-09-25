@@ -131,7 +131,7 @@ export function adaptationHint(
   displayHeight: number,
 ): string {
   if (!width || !height) {
-    return `Ekran ${displayWidth}×${displayHeight}. Varsayılan "Doldur" kesmeden tüm görseli ekran ölçüsüne yayar.`;
+    return `Ekran ${displayWidth}×${displayHeight}. "Doldur" görselin tamamını oranını bozmadan gösterir.`;
   }
-  return `Bu medya ${width}×${height}. Ekran ${displayWidth}×${displayHeight}. Varsayılan "Doldur" kesmeden tüm görseli ekran ölçüsüne yayar. "Sığdır" boşluk bırakır. "Kırparak doldur" kenarları kesebilir.`;
+  return `Bu medya ${width}×${height}. Ekran ${displayWidth}×${displayHeight}. "Doldur" ve "Sığdır" oranı korur, gerekirse kenarda boşluk kalır. "Kırparak doldur" kenarları kesebilir.`;
 }

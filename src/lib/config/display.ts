@@ -16,7 +16,7 @@ export type VideoEndBehavior = "next-on-end" | "loop";
 
 export type TransitionType = "fade" | "crossfade" | "none";
 
-/** Default: fill LED exactly without cropping (may lightly rescale axes). */
+/** Default: show the full image without cropping or distorting its aspect ratio. */
 export const DEFAULT_FIT_MODE: FitMode = "stretch";
 export const DEFAULT_IMAGE_DURATION = 10;
 export const DEFAULT_TRANSITION: TransitionType = "fade";

@@ -135,18 +135,15 @@ export function computeMediaRect(
     return { width: frameW, height: frameH, left: 0, top: 0 };
   }
 
-  // stretch (default UX): fill LED exactly — no crop, full image visible
-  if (fitMode === "stretch" || fitMode === "fill") {
-    return { width: frameW, height: frameH, left: 0, top: 0 };
-  }
-
   const mediaRatio = mediaW / mediaH;
   const frameRatio = frameW / frameH;
 
   let width: number;
   let height: number;
 
-  if (fitMode === "contain") {
+  // stretch and contain: whole image visible, aspect ratio kept (no squash).
+  // "fill" is a legacy alias of stretch.
+  if (fitMode === "contain" || fitMode === "stretch" || fitMode === "fill") {
     if (mediaRatio > frameRatio) {
       width = frameW;
       height = frameW / mediaRatio;
@@ -270,10 +267,10 @@ export function MediaFit({
         height: rect.height,
         maxWidth: "none",
         maxHeight: "none",
-        objectFit: "fill",
+        objectFit: "contain",
         imageOrientation: "from-image",
       }
-    : fitMode === "contain"
+    : fitMode === "contain" || fitMode === "stretch" || fitMode === "fill"
       ? {
           position: "absolute",
           top: "50%",
@@ -300,12 +297,15 @@ export function MediaFit({
             imageOrientation: "from-image",
           }
         : {
-            // stretch — fill frame immediately
             position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "fill",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            maxWidth: "100%",
+            maxHeight: "100%",
+            width: "auto",
+            height: "auto",
+            objectFit: "contain",
             imageOrientation: "from-image",
           };
 

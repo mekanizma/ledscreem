@@ -63,7 +63,7 @@ export function PreviewFrame({
             ? "Sığdır: görselin tamamı görünür, gerekirse boşluk kalır."
             : item.fit_mode === "cover"
               ? "Kırp: ekran dolar, kenarlar kesilebilir."
-              : `Doldur: görsel kesilmeden ${width}×${height} alana yayılır.`}
+              : "Doldur: görselin tamamı oran bozulmadan görünür, gerekirse ince boşluk kalır."}
         </p>
       ) : null}
     </div>

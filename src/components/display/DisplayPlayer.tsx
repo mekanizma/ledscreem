@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PlaylistItem } from "@/lib/supabase/types";
 import { ContentRenderer, ContentStage } from "@/components/display/ContentRenderer";
 import { DEFAULT_TRANSITION } from "@/lib/config/display";
+import { playlistsMatch, resumeIndexAfterUpdate } from "@/lib/content/playlist";
 
 interface DisplayPlayerProps {
   items: PlaylistItem[];
@@ -32,6 +33,7 @@ export function DisplayPlayer({
   const pendingRef = useRef<PlaylistItem[] | null>(null);
   const playlistRef = useRef(playlist);
   const indexRef = useRef(index);
+  const goNextRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     playlistRef.current = playlist;
@@ -83,15 +85,21 @@ export function DisplayPlayer({
   }, []);
 
   const applyPendingIfAny = useCallback(() => {
-    if (pendingRef.current && pendingRef.current.length > 0) {
-      const next = pendingRef.current;
-      pendingRef.current = null;
-      setPlaylist(next);
-      setIndex(0);
+    const next = pendingRef.current;
+    if (!next || next.length === 0) return false;
+
+    pendingRef.current = null;
+    const currentId = playlistRef.current[indexRef.current]?.content_id;
+
+    if (playlistsMatch(playlistRef.current, next)) {
       onPendingApplied?.();
-      return true;
+      return false;
     }
-    return false;
+
+    setPlaylist(next);
+    setIndex(resumeIndexAfterUpdate(next, currentId));
+    onPendingApplied?.();
+    return true;
   }, [onPendingApplied]);
 
   const goNext = useCallback(() => {
@@ -121,21 +129,30 @@ export function DisplayPlayer({
 
   const current = playlist[index] ?? null;
 
-  // Image / announcement timer
+  useEffect(() => {
+    goNextRef.current = goNext;
+  }, [goNext]);
+
+  // Restart only when the slide itself changes. Parent refreshes must not reset the countdown.
   useEffect(() => {
     clearTimer();
     if (!current) return;
     if (current.type === "video" && current.video_end_behavior === "next-on-end") {
-      // Video drives next via onEnded; safety timeout = duration * 2 + 5s
       const safety = Math.max(current.duration * 2 + 5, 30) * 1000;
-      timerRef.current = setTimeout(() => goNext(), safety);
+      timerRef.current = setTimeout(() => goNextRef.current(), safety);
       return () => clearTimer();
     }
 
     const ms = Math.max(current.duration, 1) * 1000;
-    timerRef.current = setTimeout(() => goNext(), ms);
+    timerRef.current = setTimeout(() => goNextRef.current(), ms);
     return () => clearTimer();
-  }, [current, goNext, clearTimer]);
+  }, [
+    current?.content_id,
+    current?.duration,
+    current?.type,
+    current?.video_end_behavior,
+    clearTimer,
+  ]);
 
   // Empty playlist — stay black, never show message
   if (!playlist.length || !current) {

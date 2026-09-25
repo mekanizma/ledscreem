@@ -586,7 +586,7 @@ export function ContentForm({
             options={[
               {
                 value: "stretch",
-                label: `Doldur (kesmeden — ${DISPLAY_CONFIG.width}×${DISPLAY_CONFIG.height}'a yay)`,
+                label: "Doldur (kesmeden, oran bozulmaz)",
               },
               {
                 value: "contain",

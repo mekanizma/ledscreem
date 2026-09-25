@@ -43,6 +43,34 @@ export function mapToPlaylistItems(
   return items;
 }
 
+export function playlistsMatch(a: PlaylistItem[], b: PlaylistItem[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every(
+    (item, i) =>
+      item.content_id === b[i]?.content_id &&
+      item.duration === b[i]?.duration &&
+      item.sort_order === b[i]?.sort_order &&
+      item.type === b[i]?.type &&
+      item.image_url === b[i]?.image_url &&
+      item.video_url === b[i]?.video_url &&
+      item.fit_mode === b[i]?.fit_mode &&
+      item.video_end_behavior === b[i]?.video_end_behavior,
+  );
+}
+
+/** Continue after the slide that just finished, instead of restarting at the first item. */
+export function resumeIndexAfterUpdate(
+  next: PlaylistItem[],
+  currentId: string | undefined,
+): number {
+  if (!next.length) return 0;
+  const currentIdx = currentId
+    ? next.findIndex((item) => item.content_id === currentId)
+    : -1;
+  if (currentIdx < 0) return 0;
+  return (currentIdx + 1) % next.length;
+}
+
 export function contentToPreviewItem(content: Content, sortOrder = 0): PlaylistItem {
   return {
     id: content.id,

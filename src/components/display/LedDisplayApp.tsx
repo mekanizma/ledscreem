@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Display, DisplayContentWithContent, PlaylistItem } from "@/lib/supabase/types";
 import { asContent, asDisplay } from "@/lib/supabase/types";
-import { mapToPlaylistItems } from "@/lib/content/playlist";
+import { mapToPlaylistItems, playlistsMatch } from "@/lib/content/playlist";
 import { filterPlayablePlaylist } from "@/lib/content/status";
 import {
   loadPlaylistCache,
@@ -79,6 +79,11 @@ export function LedDisplayApp({ displayCode, debug = false }: LedDisplayAppProps
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null);
   const displayIdRef = useRef<string | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const itemsRef = useRef<PlaylistItem[]>([]);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   const applyFetched = useCallback(
     (displayRow: Display, playlist: PlaylistItem[], soft: boolean) => {
@@ -96,10 +101,13 @@ export function LedDisplayApp({ displayCode, debug = false }: LedDisplayAppProps
         .filter((u): u is string => Boolean(u));
       void prefetchMedia(mediaUrls);
 
-      if (soft) {
+      if (soft && playlistsMatch(itemsRef.current, playlist)) {
+        setPendingItems(null);
+      } else if (soft) {
         setPendingItems(playlist);
       } else {
         setItems(playlist);
+        itemsRef.current = playlist;
         setPendingItems(null);
       }
       setReady(true);
@@ -223,7 +231,7 @@ export function LedDisplayApp({ displayCode, debug = false }: LedDisplayAppProps
     <ScaledViewport
       width={width}
       height={height}
-      mode="stretch"
+      mode="fit"
       className="h-full w-full"
     >
       <DisplayPlayer
@@ -233,6 +241,7 @@ export function LedDisplayApp({ displayCode, debug = false }: LedDisplayAppProps
         pendingItems={pendingItems}
         onPendingApplied={() => {
           if (pendingItems) {
+            itemsRef.current = pendingItems;
             setItems(pendingItems);
             setPendingItems(null);
           }
