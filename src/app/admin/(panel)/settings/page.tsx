@@ -5,8 +5,6 @@ import {
   TIMEZONE,
 } from "@/lib/config/display";
 import { createClient } from "@/lib/supabase/server";
-import { CreateAdminForm } from "@/components/admin/CreateAdminForm";
-import { ChangePasswordForm } from "@/components/admin/ChangePasswordForm";
 import { asProfile } from "@/lib/supabase/types";
 
 export default async function SettingsPage() {
@@ -52,26 +50,6 @@ export default async function SettingsPage() {
             <dd className="font-medium">{profile?.full_name ?? "—"}</dd>
           </div>
         </dl>
-      </section>
-
-      <section className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
-        <h2 className="text-sm font-semibold text-slate-900">Şifre değiştir</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Oturum açtığınız hesabın şifresini güncelleyin.
-        </p>
-        <div className="mt-4">
-          <ChangePasswordForm />
-        </div>
-      </section>
-
-      <section className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
-        <h2 className="text-sm font-semibold text-slate-900">Admin hesap oluştur</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Yeni hesaplar otomatik olarak admin yetkisiyle oluşturulur.
-        </p>
-        <div className="mt-4">
-          <CreateAdminForm />
-        </div>
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
